@@ -1,4 +1,4 @@
-#define GLEW_STATIC
+
 #include <GL\glew.h>
 #include "utilityHelper.h"
 #include <GLFW\glfw3.h>
@@ -108,7 +108,7 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT); //Clears the screen
 		
 		 // Draw the triangle
-		ourShader.use();
+		ourShader.Use();
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
