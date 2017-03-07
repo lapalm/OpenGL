@@ -63,6 +63,7 @@ int main() {
 	glViewport(0, 0, WIDTH, HEIGHT);
 
 	// Build and compile our shader program
+
 	mvpShaderProgram =  shader::initShaders("minimal.vert", "minimal.frag");
 
 	GLfloat vertices[] = {
@@ -111,6 +112,7 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT); //Clears the screen
 		
 		 // Draw the triangle
+
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
