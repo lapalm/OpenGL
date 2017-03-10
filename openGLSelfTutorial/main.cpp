@@ -5,6 +5,9 @@
 #include "SOIL.h"
 #include "shaderProgram.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 //using namespace shader;
 using namespace std;
@@ -203,6 +206,20 @@ int main() {
 
 		//shader::useShaderProgram(programs["initShader"]);
 		program.Use();
+
+		//Compute Transformations
+		glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
+		glm::mat4 trans;
+		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		trans = glm::rotate(trans, (GLfloat)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.0f, 0.0f, 1.0f)); // glm::radians(90.0f)
+		trans = glm::scale(trans, glm::vec3(0.5f, 0.5f, 0.5f));
+		
+		vec = trans * vec;
+		cout << vec.x << vec.y << vec.z << endl;
+
+		//Get matrix's uniform location and set matrix
+		GLuint transformLoc = glGetUniformLocation(program.Program, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
 		glActiveTexture(GL_TEXTURE0);
 		/*After activating a texture unit, a subsequent 
