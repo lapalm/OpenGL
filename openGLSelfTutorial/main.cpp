@@ -62,21 +62,71 @@ int main() {
 	// Define the viewport dimensions
 	glViewport(0, 0, WIDTH, HEIGHT);
 
+	// Setup OpenGL options
+	glEnable(GL_DEPTH_TEST);
+
 	// Build and compile our shader program
 	Shader program("minimal.vert", "minimal.frag");
 
 	GLfloat vertices[] = {
-		// Positions          // Colors           // Texture Coords
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Top Right
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Bottom Right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // Bottom Left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // Top Left 
+		// Positions        // Texture Coords
+
+		- 0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
-	GLuint indices[] = {  // Note that we start from 0!
-		0, 1, 3, // First Triangle
-		1, 2, 3  // Second Triangle
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
+
 	//VBO = Vertex Buffer Object
 	//VAO = Vertex Array Object
 	//EBO = Element Buffer Object - EBO is a buffer, just like the vertex buffer object, that stores indices that OpenGL uses to
@@ -87,24 +137,17 @@ int main() {
 	GLuint VBO, VAO, EBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
 
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
 	// Position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
-	// Color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
 	// TexCoord attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(2);
 
 	glBindVertexArray(0); // Unbind VAO
@@ -192,8 +235,17 @@ int main() {
 		//Rendering commands go here
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); //Color to clear with
-		glClear(GL_COLOR_BUFFER_BIT); //Clears the screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clears the screen
 		
+		glActiveTexture(GL_TEXTURE0);
+		/*After activating a texture unit, a subsequent
+		glBindTexture call will bind that texture to the currently active texture unit. */
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		/*By setting them via glUniform1i we make sure each uniform sampler corresponds to the proper texture unit.*/
+		glUniform1i(glGetUniformLocation(program.Program, "ourTexture1"), 0); //programs["initShader"]
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+		glUniform1i(glGetUniformLocation(program.Program, "ourTexture2"), 1); //programs["initShader"]
 		//Draw Codes go here
 
 		/*Texture unit GL_TEXTURE0 is always by default activated.
@@ -204,36 +256,50 @@ int main() {
 		which is useful when we'd have to loop over several texture units.
 		*/
 
-		//shader::useShaderProgram(programs["initShader"]);
 		program.Use();
 
 		//Compute Transformations
-		glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
-		glm::mat4 trans;
-		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-		trans = glm::rotate(trans, (GLfloat)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.0f, 0.0f, 1.0f)); // glm::radians(90.0f)
-		trans = glm::scale(trans, glm::vec3(0.5f, 0.5f, 0.5f));
+		glm::mat4 model;
+		glm::mat4 view;
+		glm::mat4 projection;
+		//By multiplying the vertex coordinates with this model 
+		//matrix we're transforming the vertex coordinates to world coordinates. 
+		model = glm::rotate(model, (GLfloat)glfwGetTime() * glm::radians (-55.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		
-		vec = trans * vec;
-		cout << vec.x << vec.y << vec.z << endl;
+		//Note that we're translating the scene in the reverse direction of where we want to move.
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
-		//Get matrix's uniform location and set matrix
-		GLuint transformLoc = glGetUniformLocation(program.Program, "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+		//We want to use perspective projection for our scene so we'll declare the projection matrix like this:
+		//glm::perspective (FOV, Aspect Ratio, zNear, zFar)
+		projection = glm::perspective(glm::radians(45.0f), (float)(WIDTH / HEIGHT), 0.1f, 100.0f);
 
-		glActiveTexture(GL_TEXTURE0);
-		/*After activating a texture unit, a subsequent 
-		glBindTexture call will bind that texture to the currently active texture unit. */
-		glBindTexture(GL_TEXTURE_2D, texture1);
-		/*By setting them via glUniform1i we make sure each uniform sampler corresponds to the proper texture unit.*/
-		glUniform1i(glGetUniformLocation(program.Program, "ourTexture1"), 0); //programs["initShader"]
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
-		glUniform1i(glGetUniformLocation(program.Program, "ourTexture2"), 1); //programs["initShader"]
+		//Get the uniform location 
+		GLint modelLoc = glGetUniformLocation(program.Program, "model");
+		GLint viewLoc = glGetUniformLocation(program.Program, "view");
+		GLint projLoc = glGetUniformLocation(program.Program, "projection");
+		
 
 		//Draw Container
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		for (GLuint i = 0; i < 10; i++) {
+			glm::mat4 model;
+			model = glm::translate(model, cubePositions[i]);
+			GLfloat angle = glm::radians(20.0f) * i;
+
+			// Every 3rd iteration(including the first) we set the angle using GLFW's time function.
+
+			if (i % 1 == 0) {
+				angle = (GLfloat)glfwGetTime() * glm::radians(25.0f);
+			}
+			model = glm::rotate(model,  angle * (i + 1), glm::vec3(1.0f, 0.3f, 0.5f));
+
+			//Pass to shader
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 		glBindVertexArray(0);
 
 		//Swap the buffers
