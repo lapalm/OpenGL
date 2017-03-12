@@ -6,4 +6,9 @@ Getting Started - Completed
 OpenGL - Completed  
 Created a window - Completed  
 Create Triangle - Completed  
-Shaders - Next to do  
+Shaders - Completed
+Textures - Completed
+Transformations - Completed
+Coordinate Systems - Completed
+Camera -Completed
+
