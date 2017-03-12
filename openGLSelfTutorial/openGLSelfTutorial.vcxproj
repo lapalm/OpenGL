@@ -156,6 +156,10 @@
     <ClCompile Include="shaderProgram.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="lamp.frag" />
+    <None Include="lamp.vert" />
+    <None Include="lighting.frag" />
+    <None Include="lighting.vert" />
     <None Include="minimal.frag" />
     <None Include="minimal.vert" />
   </ItemGroup>
