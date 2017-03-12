@@ -4,6 +4,7 @@
 #include <iostream>
 #include "SOIL.h"
 #include "shaderProgram.h"
+#include "camera.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -14,16 +15,88 @@ using namespace std;
 
 //Global Variables
 
-
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
 
+//Camera Position
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+
+// Yaw = x axis view
+GLfloat yaw = -90.0f; //Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector 
+					  // pointing to the right(due to how Eular angles work) so we initially rotate a bit to the left.
+//Pitch = y axis view
+GLfloat pitch = 0.0f;
+GLfloat lastX = WIDTH / 2.0f;
+GLfloat lastY = HEIGHT / 2.0f;
+GLfloat fov = 45.0f;
+
+bool keys[1024];
+
+//Timestep
+GLfloat deltaTime = 0.0f; // Time between current frame and last frame
+GLfloat lastFrame = 0.0f; // Time of last frame
+
+// Function prototypes
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void do_movement();
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	camera.ProcessMouseScroll(yoffset);
+}
+
+
 //Closing the application
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
-	//When user presses the escape key, we set the WindowShouldClose property to true.
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+{
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+	if (key >= 0 && key < 1024)
+	{
+		if (action == GLFW_PRESS)
+			keys[key] = true;
+		else if (action == GLFW_RELEASE)
+			keys[key] = false;
 	}
+}
+
+// Mouse control
+
+bool firstMouse = true;
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+
+	//Check if this is the first time receiving the mous input and if so, we first update the initial mouse position
+	// to the new xpos and ypos values; the resuling mouse movement will then use the entered mouse's position
+	// coordinates to calculate it's offset. - Helps avoid large offsets and movement jump when mouse enters the 
+	// program display for the first time. 
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	//Calcualate the offset movement between the last and current frames.
+	GLfloat xOffset = xpos - lastX;
+	GLfloat yOffset = lastY - ypos; //Reverse since y-coordinates go from bottom to left
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xOffset, yOffset);
+}
+
+
+void do_movement() {
+	// Camera controls
+	GLfloat cameraSpeed = 5.0f * deltaTime;
+	if (keys[GLFW_KEY_W])
+		camera.ProcessKeyboard(FORWARD, deltaTime);
+	if (keys[GLFW_KEY_S])
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
+	if (keys[GLFW_KEY_A])
+		camera.ProcessKeyboard(LEFT, deltaTime);
+	if (keys[GLFW_KEY_D])
+		camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
 int main() {
@@ -51,8 +124,13 @@ int main() {
 	} 
 	glfwMakeContextCurrent(window);
 
-	// Set the required callback functions
+	// Set the required callback functions to register
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+
+	//GLFW Options
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
 	glewExperimental = GL_TRUE;
@@ -228,9 +306,13 @@ int main() {
 	//Checks if GLFW has been instructed to close.
 	while(!glfwWindowShouldClose(window)) {
 
+		GLfloat currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		//Checks and calls events
 		glfwPollEvents(); 
-
+		do_movement();
 
 		//Rendering commands go here
 
@@ -258,20 +340,34 @@ int main() {
 
 		program.Use();
 
-		//Compute Transformations
-		glm::mat4 model;
+		//Camera View & Transformation
+
+		GLfloat radius = 25.0f;
+		GLfloat camX = sin(glfwGetTime()) * radius;
+		GLfloat camZ = cos(glfwGetTime()) * radius;
+		
+		//View:
 		glm::mat4 view;
-		glm::mat4 projection;
+		view = camera.GetViewMatrix();
+
+		//Compute Transformations
+
+		//Model:
+		glm::mat4 model;
+		
 		//By multiplying the vertex coordinates with this model 
 		//matrix we're transforming the vertex coordinates to world coordinates. 
 		model = glm::rotate(model, (GLfloat)glfwGetTime() * glm::radians (-55.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		
+
 		//Note that we're translating the scene in the reverse direction of where we want to move.
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
+
+		//Projection:
+		glm::mat4 projection;
 
 		//We want to use perspective projection for our scene so we'll declare the projection matrix like this:
 		//glm::perspective (FOV, Aspect Ratio, zNear, zFar)
-		projection = glm::perspective(glm::radians(45.0f), (float)(WIDTH / HEIGHT), 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(camera.Zoom), (float)(WIDTH / HEIGHT), 0.1f, 100.0f);
 
 		//Get the uniform location 
 		GLint modelLoc = glGetUniformLocation(program.Program, "model");
@@ -318,3 +414,4 @@ int main() {
 	glfwTerminate();
 	return 0;
 }
+
