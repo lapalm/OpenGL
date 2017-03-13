@@ -270,16 +270,43 @@ int main() {
 		which is useful when we'd have to loop over several texture units.
 		*/
 
+		
 		lightingShader.Use();
 
-		GLint objectColorLoc = glGetUniformLocation(lightingShader.Program, "objectColor");
-		GLint lightColorLoc = glGetUniformLocation(lightingShader.Program, "lightColor");
-		GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "lightPos");
+		//LightPosi + View Pos
+		GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "light.position");
 		GLint viewPosLoc = glGetUniformLocation(lightingShader.Program, "viewPos");
-		glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
-		glUniform3f(lightColorLoc, 1.0f, 0.5f, 1.0f); // Set light color to white.
 		glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
 		glUniform3f(viewPosLoc, camera.Position.x, camera.Position.y, camera.Position.z);
+
+		//Set Light properties
+		glm::vec3 lightColor;
+		lightColor.x = sin((GLfloat)(glfwGetTime()*0.2) * 2.0f);
+		lightColor.y = sin((GLfloat)(glfwGetTime()*0.2) * 0.7f);
+		lightColor.z = sin((GLfloat)(glfwGetTime()*0.2) * 1.3f);
+
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); //Decrease the influence
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // Low influence
+
+		GLint lightAmbientLoc = glGetUniformLocation(lightingShader.Program, "light.ambient");
+		GLint lightDiffuseLoc = glGetUniformLocation(lightingShader.Program, "light.diffuse");
+		GLint lightSpecularLoc = glGetUniformLocation(lightingShader.Program, "light.specular");
+
+		glUniform3f(lightAmbientLoc, ambientColor.x, ambientColor.y, ambientColor.z);
+		glUniform3f(lightDiffuseLoc, diffuseColor.x, diffuseColor.y, diffuseColor.z); // Normally set light color to white.
+		glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
+
+		//Set Material Properties
+
+		GLint matAmbientLoc = glGetUniformLocation(lightingShader.Program, "material.ambient");
+		GLint matDiffuseLoc = glGetUniformLocation(lightingShader.Program, "material.diffuse");
+		GLint matSpecularLoc = glGetUniformLocation(lightingShader.Program, "material.specular");
+		GLint matShineLoc = glGetUniformLocation(lightingShader.Program, "material.shininess");
+
+		glUniform3f(matAmbientLoc, 1.0f, 0.5f, 0.31f);
+		glUniform3f(matDiffuseLoc, 1.0f, 0.5f, 0.31f);
+		glUniform3f(matSpecularLoc, 1.0f, 1.0f, 1.0f);
+		glUniform1f(matShineLoc, 32.0f); //Increase 2nd param to properly reflect (in powers) the light instead of scattering it all around.
 
 		//Create Camera Transformation
 		//View:
@@ -324,6 +351,7 @@ int main() {
 
 		model = glm::mat4();
 		model = glm::translate(model, lightPos);
+		model = glm::rotate(model, (GLfloat)(glm::radians(45.0f) * glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
 		model = glm::scale(model, glm::vec3(0.2f)); //Scale down lamp to make a smaller cube
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
