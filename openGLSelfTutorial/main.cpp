@@ -18,11 +18,12 @@ using namespace std;
 //Light Attribute
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
+//Camera Position
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
 
-//Camera Position
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 // Yaw = x axis view
 GLfloat yaw = -90.0f; //Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector 
@@ -198,6 +199,20 @@ int main() {
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 	};
 
+	// Positions all containers
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
 	//VBO = Vertex Buffer Object
 	//VAO = Vertex Array Object
 	//EBO = Element Buffer Object - EBO is a buffer, just like the vertex buffer object, that stores indices that OpenGL uses to
@@ -282,7 +297,7 @@ int main() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Emission map
-	image = SOIL_load_image("matrix.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+	image = SOIL_load_image("lava.jpg", &width, &height, 0, SOIL_LOAD_RGB);
 	glBindTexture(GL_TEXTURE_2D, emissionMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -297,7 +312,7 @@ int main() {
 	lightingShader.Use();
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "material.diffuse"), 0);
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "material.specular"), 1);
-	glUniform1i(glGetUniformLocation(lightingShader.Program, "material.emission"), 2);
+	//glUniform1i(glGetUniformLocation(lightingShader.Program, "material.emission"), 2);
 
 	//Game loop
 	//Checks if GLFW has been instructed to close.
@@ -318,16 +333,16 @@ int main() {
 		
 		//Draw Codes go here
 
-		// Change the lights positon value over time. 
-		lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
-		lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
+	
 
 		lightingShader.Use();
 
 		//LightPosi + View Pos
-		GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "light.position");
+		GLint lightDirLoc = glGetUniformLocation(lightingShader.Program, "light.direction");
+		//GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "light.position");
 		GLint viewPosLoc = glGetUniformLocation(lightingShader.Program, "viewPos");
-		glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+		//glUniform3f(lightDirLoc, lightPos.x, lightPos.y, lightPos.z);
+		glUniform3f(lightDirLoc, -0.2f, -1.0f, -0.3f);
 		glUniform3f(viewPosLoc, camera.Position.x, camera.Position.y, camera.Position.z);
 
 		//Set Light properties
@@ -383,17 +398,22 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, specularMap);
 
 		//Bind Emission map
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, emissionMap);
+	/*	glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, emissionMap);*/
 
-		//Draw Container
-		glBindVertexArray(containerVAO);
+		// Draw 10 containers with the same VAO and VBO information; only their world space coordinates differ
 		glm::mat4 model;
+		glBindVertexArray(containerVAO);
+		for (GLuint i = 0; i < 10; i++)
+		{
+			model = glm::mat4();
+			model = glm::translate(model, cubePositions[i]);
+			GLfloat angle = 20.0f * i;
+			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-		//Pass to shader
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 		glBindVertexArray(0);
 
 		//Draw Lamp 

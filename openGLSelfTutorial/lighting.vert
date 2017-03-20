@@ -16,6 +16,6 @@ void main()
     gl_Position = projection * view * model * vec4(position, 1.0f);
 	FragPos = vec3(model * vec4(position, 1.0f)); //Transform the vertex Position with the model matrix to get the FragPos in world coords.
 	// the transpose of the inverse of the upper-left corner of the model matrix : see http://www.lighthouse3d.com/tutorials/glsl-12-tutorial/the-normal-matrix/
-	Normal = normal; // mat3(transpose(inverse(model))) * normal <- use if you want to scale, but try to do in CPU instead. Less expensive
+	Normal = normal; //mat3(transpose(inverse(model))) * normal <- use if you want to scale, but try to do in CPU instead. Less expensive
 	TexCoords = texCoords;
 } 
